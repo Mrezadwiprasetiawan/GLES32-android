@@ -19,11 +19,24 @@ android {
         vectorDrawables { 
             useSupportLibrary = true
         }
-		externalNativeBuild{
-		    cmake{
-			    abiFilters("arm64-v8a","armeabi-v7a")
-			}
-		}
+				externalNativeBuild{
+					cmake{
+						abiFilters("arm64-v8a","armeabi-v7a")
+				  }
+			  }
+    }
+	signingConfigs {
+        create("release") {
+            storeFile = file("release.key")
+
+            if (rootProject.file("secrets.gradle.kts").exists()) {
+                apply(from = rootProject.file("secrets.gradle.kts"))
+            } else {
+                storePassword = System.getenv("STORE_PASSWORD") ?: "default_store_password"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "default_key_alias"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: "default_key_password"
+            }
+        }
     }
     externalNativeBuild{
 		    cmake{

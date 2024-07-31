@@ -9,6 +9,10 @@
 
 #androidIDEFiles
 .androidIDE
+
+#secrets
+secrets.gradle.kts
+
 # Java class files
 *.class
 
