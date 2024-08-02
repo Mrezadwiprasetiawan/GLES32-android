@@ -26,7 +26,7 @@ android {
 
   signingConfigs {
     create("release") {
-      storeFile = file("release.key")
+      storeFile = rootProject.file("release.key")
 
       if (rootProject.file("secrets.gradle.kts").exists()) {
         apply(from = rootProject.file("secrets.gradle.kts"))
@@ -59,7 +59,7 @@ android {
   }
 
   buildFeatures {
-    viewBinding = false
+    viewBinding = true
     prefab = true
   }
 }
