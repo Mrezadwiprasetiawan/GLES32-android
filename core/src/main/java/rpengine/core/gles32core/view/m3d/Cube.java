@@ -64,12 +64,9 @@ public class Cube implements Model {
   private int VAO, VBO;
   private final float[] mvpMatrix = new float[16];
   private final float[] modelMatrix = new float[16];
-  private final float[] rotationMatrix=new float[16];
   private float[] viewMatrix;
   private float[] projectionMatrix;
   private Context context;
-  private long oldTime=0;
-  private Quaternion rotation=new Quaternion();
 
   public Cube(Context context){
 		this.context=context;
@@ -119,23 +116,13 @@ public class Cube implements Model {
   }
   
   @Override
-  public void subInit() {
+  public void setIdentity() {
   	Matrix.setIdentityM(modelMatrix,0);
-	  Matrix.setIdentityM(rotationMatrix,0);
-	  rotation.set(0,0,0,1);
   }
   
 
   @Override
   public void draw(Projection projection, Camera camera) {
-	
-	  
-	  long currentTime=System.currentTimeMillis();
-	  if(oldTime!=0){
-		  Log.i("","fps :"+(float)1000/(currentTime-oldTime));
-		}
-		oldTime=currentTime;
-	  GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT|GLES32.GL_DEPTH_BUFFER_BIT);
 	  GLES32.glUseProgram(program);
 	  this.projectionMatrix = projection.Matrix();
     this.viewMatrix = camera.Matrix();
@@ -157,22 +144,4 @@ public class Cube implements Model {
     GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, 36);
     GLES32.glBindVertexArray(0);
   }
-  
-  public void rotate(float dx,float dy){
-		Quaternion pitchQuat = new Quaternion();
-    pitchQuat.setFromAxisAngle(1.0f, 0.0f, 0.0f, dy);
-
-    Quaternion yawQuat = new Quaternion();
-    yawQuat.setFromAxisAngle(0.0f, 1.0f, 0.0f, dx);
-
-    // Combine quaternions
-    rotation.multiply(pitchQuat);
-    rotation.multiply(yawQuat);
-
-    // Convert quaternion to rotation matrix
-    rotation.toRotationMatrix(rotationMatrix);
-
-    // Apply the rotation matrix to the view matrix
-    Matrix.multiplyMM(modelMatrix,0,modelMatrix,0,rotationMatrix,0);
-	}
 }

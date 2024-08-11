@@ -14,7 +14,7 @@ public abstract class GenericModel implements Model{
   	// TODO: Implement this method
   }
   @Override
-  public void subInit() {
+  public void setIdentity() {
   	// TODO: Implement this method
   }
   @Override
