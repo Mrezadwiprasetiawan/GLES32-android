@@ -1,17 +1,17 @@
-// vertex_shader.glsl
 #version 320 es
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
+in vec4 vert;
+in vec3 norm;
 
-uniform mat4 uMVPMatrix;
-uniform mat4 uModelMatrix;
+uniform mat4 MVPMatrix;
+uniform mat4 ModelMatrix;
+uniform mat3 NormalMatrix;
 
 out vec3 FragPos;
 out vec3 Normal;
 
 void main()
 {
-    FragPos = vec3(uModelMatrix * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(uModelMatrix))) * aNormal;
-    gl_Position = uMVPMatrix * vec4(aPos, 1.0);
+    FragPos = vec3(ModelMatrix * vert);
+    Normal = NormalMatrix * norm;
+    gl_Position = MVPMatrix * vert;
 }

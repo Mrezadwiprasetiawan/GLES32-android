@@ -1,16 +1,27 @@
 package rpengine.core.gles32core.view;
 
 import android.opengl.Matrix;
-import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.egl.EGLConfig;
 
 public class Camera {
-  private final float[] mViewMatrix = new float[16];
-  private final float[] mRotationMatrix = new float[16];
-  private final Quaternion mRotation = new Quaternion();
+  private final float[] ViewMatrix;
 
-  
-  public void setup(
+  public Camera() {
+    ViewMatrix = new float[16];
+  }
+
+  public float[] Matrix() {
+    return ViewMatrix;
+  }
+
+  public void moveTo(float x, float y, float z) {
+    moveTo(x, y, z, 0.0f, 0.0f, 0.0f);
+  }
+
+  public void moveTo(float x, float y, float z, float cx, float cy, float cz) {
+    moveTo(x, y, z, cx, cy, cz, 0.0f, 1.0f, 0.0f);
+  }
+
+  public void moveTo(
       float eyeX,
       float eyeY,
       float eyeZ,
@@ -20,46 +31,34 @@ public class Camera {
       float uX,
       float uY,
       float uZ) {
-    Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, cX, cY, cZ, uX, uY, uZ);
-    Matrix.setIdentityM(mRotationMatrix, 0);
+    Matrix.setLookAtM(ViewMatrix, 0, eyeX, eyeY, eyeZ, cX, cY, cZ, uX, uY, uZ);
   }
-  
-  public void setIdentity(){
-		Matrix.setIdentityM(mRotationMatrix,0);
-		mRotation.set(0,0,0,1);
-	}
 
-  public float[] Matrix() {
-    return mViewMatrix;
+  public void moveX(float offset){
+		move(offset,0,0);
+	}
+	public void moveY(float offset){
+		move(0,offset,0);
+	}
+	public void moveZ(float offset){
+		move(0,0,offset);
+	}
+  public void move(float[] offset) {
+    move(offset[0], offset[1], offset[2]);
   }
-  
-  public void move(float[] offset){
-		move(offset[0],offset[1],offset[2]);
-	}
-	public void move(float offsetX,float offsetY,float offsetZ){
-		Matrix.translateM(mViewMatrix,0,offsetX,offsetY,offsetZ);
-	}
-	public void moveTo(float x, float y, float z){
-		mViewMatrix[12]=x;
-		mViewMatrix[13]=y;
-		mViewMatrix[14]=z;
-	}
-  public void rotate(float deltaX, float deltaY) {
-    // Create quaternions for rotation
-    Quaternion pitchQuat = new Quaternion();
-    pitchQuat.setFromAxisAngle(1.0f, 0.0f, 0.0f, deltaY);
 
-    Quaternion yawQuat = new Quaternion();
-    yawQuat.setFromAxisAngle(0.0f, 1.0f, 0.0f, deltaX);
-
-    // Combine quaternions
-    mRotation.multiply(pitchQuat);
-    mRotation.multiply(yawQuat);
-
-    // Convert quaternion to rotation matrix
-    mRotation.toRotationMatrix(mRotationMatrix);
-
-    // Apply the rotation matrix to the view matrix
-    Matrix.multiplyMM(mViewMatrix, 0, mRotationMatrix, 0, mViewMatrix, 0);
+  public void move(float offsetX, float offsetY, float offsetZ) {
+    Matrix.translateM(ViewMatrix, 0, offsetX, offsetY, offsetZ);
   }
+
+  public void rotate(float dx, float dy) {
+    float len = (float) Math.sqrt((dx * dx + dy * dy));
+    Matrix.rotateM(ViewMatrix, 0, len, dy, dx, 0);
+  }
+  public float[] position(){
+	  float[] tmpMatrix=new float[16];
+	  Matrix.invertM(tmpMatrix,0,ViewMatrix,0);
+	  Matrix.transposeM(tmpMatrix,0,tmpMatrix,0);
+		return new float[]{tmpMatrix[12],tmpMatrix[13],tmpMatrix[14]};
+	}
 }

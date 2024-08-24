@@ -6,6 +6,9 @@ public class Light {
   private float[] position = new float[3];
   private int color;
 
+  public Light(){
+		this(new float[]{0,0,-10});
+	}
   public Light(float[] position) {
     this(position, Color.WHITE);
   }
@@ -38,7 +41,7 @@ public class Light {
     setColor(Color.rgb((int) (r * 255), (int) (g * 255), (int) (b * 255)));
   }
 
-  public void setColor(float a, float r, float g, float b) {
+  public void setColor(float r, float g, float b, float a) {
     // Mengatur warna dengan alpha dan RGB
     setColor(Color.argb((int) (a * 255), (int) (r * 255), (int) (g * 255), (int) (b * 255)));
   }

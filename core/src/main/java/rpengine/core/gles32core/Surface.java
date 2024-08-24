@@ -16,9 +16,11 @@ import rpengine.core.gles32core.view.m3d.Cube;
 public class Surface extends GLSurfaceView {
   public Context context;
   private Renderer renderer;
-  private float prevX = -1, prevY = -1;
-  private float prevDx = -1, prevDy = -1;
-  private float dx = 0, dy = 0;
+  private float prevX=0,prevY=0,dx = 0, dy = 0;
+  private final float[] mcurrrot = new float[16];
+  private final float[] maccrot = new float[16];
+  private final float density = getResources().getDisplayMetrics().density;
+  private float sensitivity;
 
   public Surface(Context context) {
     super(context);
@@ -26,30 +28,26 @@ public class Surface extends GLSurfaceView {
     setEGLContextClientVersion(3);
     renderer = new Renderer(context);
     setRenderer(renderer);
+    Matrix.setIdentityM(maccrot, 0);
   }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
     float x = event.getX(), y = event.getY();
     switch (event.getAction()) {
-      case MotionEvent.ACTION_DOWN:
-        prevX = x;
-        prevY = y;
-        break;
       case MotionEvent.ACTION_MOVE:
-        dx = (x - prevX) % 360 + prevDx;
-        dy = (y - prevY) % 360 + prevDy;
+        dx = (x - prevX) % 360;
+        dy = (y - prevY) % 360;
         renderer.setListener(
             () -> {
-              float len = (float) Math.sqrt((dx * dx + dy * dy));
-              Matrix.rotateM(renderer.cube().modelMatrix(), 0, len, dy, dx, 0);
+              renderer.cube().rotate(dx,dy,sensitivity);
+              dx = 0;
+              dy = 0;
             });
         break;
-      case MotionEvent.ACTION_UP:
-        prevDx = dx%360;
-        prevDy = dy%360;
-        break;
     }
+	  prevX=x;
+	  prevY=y;
     return true;
   }
 
@@ -67,6 +65,8 @@ public class Surface extends GLSurfaceView {
       camera = new Camera();
       projection = new Projection();
       cube = new Cube(context);
+			cube.setColor(Color.valueOf(Color.MAGENTA));
+			light = new Light(new float[]{0.0f,0,3.0f});
     }
 
     public void setListener(Listener listener) {
@@ -104,7 +104,7 @@ public class Surface extends GLSurfaceView {
     @Override
     public void onDrawFrame(GL10 unused) {
       GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT | GLES32.GL_DEPTH_BUFFER_BIT);
-      camera.setup(0, 0, 3, 0, 0, 0, 0, 1, 0);
+      camera.moveTo(0, 0, 3);
       cube.setIdentity();
       if (listener != null) {
         listener.listen();
@@ -116,5 +116,13 @@ public class Surface extends GLSurfaceView {
     public interface Listener {
       void listen();
     }
+  }
+
+  public float getSensitivity() {
+    return this.sensitivity;
+  }
+
+  public void setSensitivity(float sensitivity) {
+    this.sensitivity = sensitivity;
   }
 }

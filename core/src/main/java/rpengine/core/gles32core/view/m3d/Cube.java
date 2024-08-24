@@ -10,13 +10,12 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import rpengine.core.gles32core.Utils;
 import rpengine.core.gles32core.view.Camera;
+import rpengine.core.gles32core.view.GenericModel;
 import rpengine.core.gles32core.view.Light;
 import rpengine.core.gles32core.view.Model;
 import rpengine.core.gles32core.view.Projection;
-import rpengine.core.gles32core.view.Quaternion;
-
-public class Cube implements Model {
-  private final float[] cubeVertices = {
+public class Cube extends GenericModel{
+  private final float[] data = {
     // Positions         // Normals
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -24,7 +23,7 @@ public class Cube implements Model {
      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-
+  
     -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
      0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
      0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
@@ -58,29 +57,29 @@ public class Cube implements Model {
      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+	  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
-  private int program;
-  private int VAO, VBO;
-  private final float[] mvpMatrix = new float[16];
-  private final float[] modelMatrix = new float[16];
-  private float[] viewMatrix;
-  private float[] projectionMatrix;
-  private Context context;
+  
 
   public Cube(Context context){
-		this.context=context;
+		super(context);
+		setVertices(data,3,0,6);
+		setNormals(data,3,3,6);
 	}
+	
   @Override
-  public void init(Light light) {
-    try {
+  protected void setupShader() {
+  	try {
       program =
           Utils.createProgram(
-              Utils.loadShaderAsset(context, "vs"), Utils.loadShaderAsset(context, "fs"));
+              Utils.loadShaderAsset(getContext(), "vs"), Utils.loadShaderAsset(getContext(), "fs"));
     } catch (IOException e) {
       Log.e("Renderer", e.getMessage());
     }
-    GLES32.glUseProgram(program);
+  }
+  @Override
+  protected void setupBindVertexArray() {
+  	GLES32.glUseProgram(program);
 
     // Create VAO and VBO
     int[] vao = new int[1];
@@ -94,54 +93,20 @@ public class Cube implements Model {
 
     GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, VBO);
     FloatBuffer vertexBuffer =
-        ByteBuffer.allocateDirect(cubeVertices.length * 4)
+        ByteBuffer.allocateDirect(data.length * 4)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(cubeVertices);
+            .put(data);
     vertexBuffer.position(0);
     GLES32.glBufferData(
-        GLES32.GL_ARRAY_BUFFER, cubeVertices.length * 4, vertexBuffer, GLES32.GL_STATIC_DRAW);
+        GLES32.GL_ARRAY_BUFFER, data.length * 4, vertexBuffer, GLES32.GL_STATIC_DRAW);
 
-    GLES32.glVertexAttribPointer(0, 3, GLES32.GL_FLOAT, false, 6 * 4, 0);
-    GLES32.glEnableVertexAttribArray(0);
-    GLES32.glVertexAttribPointer(1, 3, GLES32.GL_FLOAT, false, 6 * 4, 3 * 4);
-    GLES32.glEnableVertexAttribArray(1);
+    GLES32.glVertexAttribPointer(GLES32.glGetAttribLocation(program,"vert"), 3, GLES32.GL_FLOAT, false, 6 * 4, 0);
+    GLES32.glEnableVertexAttribArray(GLES32.glGetAttribLocation(program,"vert"));
+    GLES32.glVertexAttribPointer(GLES32.glGetAttribLocation(program,"norm"), 3, GLES32.GL_FLOAT, false, 6 * 4, 3 * 4);
+    GLES32.glEnableVertexAttribArray(GLES32.glGetAttribLocation(program,"norm"));
 
     GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0);
-    GLES32.glBindVertexArray(0);
-  }
-  @Override
-  public float[] modelMatrix() {
-  	return modelMatrix;
-  }
-  
-  @Override
-  public void setIdentity() {
-  	Matrix.setIdentityM(modelMatrix,0);
-  }
-  
-
-  @Override
-  public void draw(Projection projection, Camera camera) {
-	  GLES32.glUseProgram(program);
-	  this.projectionMatrix = projection.Matrix();
-    this.viewMatrix = camera.Matrix();
-    Matrix.multiplyMM(mvpMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-    Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, mvpMatrix, 0);
-
-    int uMVPMatrixLocation = GLES32.glGetUniformLocation(program, "uMVPMatrix");
-    GLES32.glUniformMatrix4fv(uMVPMatrixLocation, 1, false, mvpMatrix, 0);
-
-    int uModelMatrixLocation = GLES32.glGetUniformLocation(program, "uModelMatrix");
-    GLES32.glUniformMatrix4fv(uModelMatrixLocation, 1, false, modelMatrix, 0);
-
-    GLES32.glUniform3f(GLES32.glGetUniformLocation(program, "lightPos"), 0.0f, 1.0f, 3.0f);
-    GLES32.glUniform3f(GLES32.glGetUniformLocation(program, "viewPos"), 0.0f, 0.0f, 3.0f);
-    GLES32.glUniform3f(GLES32.glGetUniformLocation(program, "lightColor"), 1.0f, 1.0f, 1.0f);
-    GLES32.glUniform3f(GLES32.glGetUniformLocation(program, "objectColor"), 0.3f, 0.8f, 0.3f);
-	
-    GLES32.glBindVertexArray(VAO);
-    GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, 36);
     GLES32.glBindVertexArray(0);
   }
 }

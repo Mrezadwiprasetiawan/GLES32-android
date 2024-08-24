@@ -14,6 +14,7 @@ public class MainActivity extends Activity {
 	  binding=ActivityMainBinding.inflate(getLayoutInflater());
 	  surface=new Surface(this);
 	  setContentView(surface);
+	  surface.setSensitivity(1);
 	  //setContentView(binding.getRoot());
   }
   

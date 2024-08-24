@@ -1,9 +1,12 @@
 package rpengine.core.gles32core.view;
+import android.graphics.Color;
 
 
 public interface Model {
 	public void init(Light Light);
-	public float[] modelMatrix();
 	public void setIdentity();
-	public void draw(Projection projection, Camera camera);
+	public void setColor(Color color);
+	public void rotate(float dx,float dy,float sensitivity);
+	public float[] MVP();
+	public void draw(Projection projection,Camera camera);
 }
